@@ -225,10 +225,15 @@ def run_s3atest(client, maven_version, testdir, test_options):
     """
     aws_testdir = '{testdir}/hadoop/hadoop-tools/hadoop-aws/'.format(testdir=testdir)
     run_test = '{testdir}/apache-maven-{maven_version}/bin/mvn'.format(testdir=testdir, maven_version=maven_version)
+    # Remove AWS CredentialsProvider tests as it hits public bucket from AWS
+    # better solution is to create the public bucket on local server and test
+    rm_test = 'rm src/test/java/org/apache/hadoop/fs/s3a/ITestS3AAWSCredentialsProvider.java'
     client.run(
         args=[
             'cd',
             run.Raw(aws_testdir),
+            run.Raw('&&'),
+            run.Raw(rm_test),
             run.Raw('&&'),
             run.Raw(run_test),
             run.Raw(test_options)
@@ -250,11 +255,6 @@ def configure_s3a(client, dns_name, access_key, secret_key, bucket_name, testdir
 <property>
 <name>fs.contract.test.fs.s3a</name>
 <value>s3a://{bucket_name}/</value>
-</property>
-
-<property>
-<name>fs.s3a.scale.test.csvfile</name>
-<value> </value>
 </property>
 
 <property>
